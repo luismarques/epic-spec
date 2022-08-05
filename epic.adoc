@@ -151,7 +151,7 @@ The relocation table below lists the relocations used by the ePIC ABI.
 |  193 | `R_RISCV_EPIC_LO12_I`   | Rewrite      | `%epic_lo(<address of %epic_hi>)`
 |  194 | `R_RISCV_EPIC_LO12_S`   | Rewrite      | `%epic_lo(<address of %epic_hi>)`
 |  195 | `R_RISCV_EPIC_BASE_ADD` | Rewrite      | `%epic_base_add(<symbol>)`
-|=== 
+|===
 
 [[reloc-table-legend]]
 *Resolution legend*:
@@ -159,8 +159,8 @@ The relocation table below lists the relocations used by the ePIC ABI.
 * `A`: the addend used to compute the value of the relocatable field.
 * `GP`: the value of the global pointer.
 * `S`: the value of the symbol.
- 
-The `R_RISCV_GPREL_*` relocations are defined with a numerical code chosen to be compatible with other proposals under review such as the https://github.com/riscv-non-isa/riscv-elf-psabi-doc/pull/154[compact] and https://github.com/riscv-non-isa/riscv-elf-psabi-doc/pull/254[large] code models.
+
+The `R_RISCV_GPREL_*` relocations are defined with a numerical code chosen to be compatible with other proposals under review such as the https://github.com/ebahapo/riscv-elf-psabi-doc/blob/compact/riscv-compact.md[compact] and https://github.com/ebahapo/riscv-elf-psabi-doc/blob/large/riscv-large.md[large] code models.
 
 The `R_RISCV_EPIC_*` relocations are currently defined with numerical codes in the 192-255 range reserved for nonstandard ABI extensions. If this ABI specification becomes an official standard then new numerical codes will be adopted from the range reserved for standard extensions.
 
@@ -469,7 +469,7 @@ The following table illustrates typical results from building executables with t
 |   `p2` |  .sdata |       .sdata | `R_RISCV_32` `(y + 0)` | Data segment
 |   `p3` | .rodata | .data.rel.ro | `R_RISCV_32` `(x + 0)` | Data segment
 |   `p4` | .rodata | .data.rel.ro | `R_RISCV_32` `(y + 0)` | Data segment
-|=== 
+|===
 
 `x` is mutable while `y` is not. Per the C specification, since `y` is `const` and it is not `volatile`, it may be placed in a read-only region of storage. Thus, a compiler like Clang will typically emit `y` in the read-only section `.rodata`, while `x` will be emitted in the writable section `.sdata`. When using ePIC, `x` will be accessed in a `GP`-relative way, due to being part of the data segment, while `y` will be accessed in a `PC`-relative way, due to being part of the code segment.
 
