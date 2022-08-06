@@ -24,6 +24,7 @@
 ** <<example-3>>
 ** <<example-4>>
 ** <<example-5>>
+* <<external-links>>
 
 == Introduction
 
@@ -531,3 +532,12 @@ The following table illustrates typical results from building executables with t
 `p1` and `p2` are mutable pointers so they are also emitted in the `.sdata` section. It does not matter whether the variables that they point to are `const` or not.
 
 `p3` is a `const` pointer to mutable data while `p4` is a `const` pointer to `const` data. Because they are `const` pointers, per the C specification they can be put in read-only storage. Again, it does not matter whether the variables that they point to are `const` or not. When building non-PIE binaries the location of `x` and `y` will be assigned at static link time. Thus, the `R_RISCV_32` relocation can be applied at static link time, and `p3` and `p4` can be emitted in a read-only section. In a PIE binary the relocation can only be resolved during the dynamic linking process, so `p3` and `p4` must be emitted in a writable section -- in this case `.data.rel.ro` -- so that the relocation can be be applied by the dynamic linker. The `.rel.ro` suffix indicates the use of "Relocation Read-Only" (RELRO), not a read-only section. When using RELRO the dynamic linker is allowed to mark the section as read-only after applying the relocations.
+
+== External links [[external-links]]
+
+* Examples projects using ePIC:
+** https://github.com/lowRISC/epic-c-example[ePIC baremetal C program example].
+** https://github.com/lowRISC/epic-tock-c-example[ePIC TockOS C program example].
+** https://github.com/lowRISC/epic-tock-rs-example[ePIC TockOS Rust program example]. Needs to be updated to work with the latest toolchain implementation.
+* Toolchain implementations:
+** https://github.com/lowRISC/llvm-project/tree/epic[LLVM implementation] (work in progress).
