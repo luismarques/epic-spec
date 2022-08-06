@@ -109,7 +109,7 @@ The address of a symbol that resides in the data segment is computed relative to
 
 ----
         lui  rd, %gprel_hi(symbol)
-        add  rd, gp, rd, %gprel(symbol)
+        add  rd, gp, rd, %gprel_add(symbol)
         addi rd, rd, %gprel_lo(symbol)
 ----
 
