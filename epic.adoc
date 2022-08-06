@@ -15,6 +15,7 @@
 *** <<rels-epic-hi>>
 *** <<rels-epic-base>>
 *** <<rels-epic-lo>>
+** <<relaxations>>
 ** <<toolchain-concerns>>
 ** <<loading>>
 * <<examples>>
@@ -113,6 +114,8 @@ The address of a symbol that resides in the data segment is computed relative to
         addi rd, rd, %gprel_lo(symbol)
 ----
 
+The four-operand `add` instruction is a pseudoinstruction. The fourth operand is fictitious but it provides a place to use the `%gprel_add` assembler relocation function. That way, the pseudoinstruction can be translated into a regular `add` with the first three operands, plus a `R_RISCV_GPREL_ADD` relocation referencing the appropriate symbol. That relocation is used only for the purposes of <<relaxations,linker relaxations>> , so it is not essential to this ABI. Therefore, a regular `add` without the fourth operand can also be used instead. This approach follows the https://github.com/riscv-non-isa/riscv-elf-psabi-doc/blob/master/riscv-elf.adoc#local-exec[existing convention] used for thread-local storage, where an `add` pseudoinstruction is also used. There, the fourth operand is used with the assembler relocation function `%tprel_add` to emit a `R_RISCV_TPREL_ADD` relocation.
+
 ==== Address generation for the code segment [[addr-gen-code]]
 
 Addresses of symbols that reside in the code segment are computed relative to the program counter. The canonical instruction sequence to generate the address of a symbol in that segment is:
@@ -168,7 +171,7 @@ The `R_RISCV_EPIC_*` relocations are currently defined with numerical codes in t
 
 The `R_RISCV_GPREL_HI20`, `R_RISCV_GPREL_LO12_I` and `R_RISCV_GPREL_LO12_S` relocations apply to instructions encoded using the `U`, `I`, and `S` instruction formats, respectively. The relocation value is given by the formula `S + A - GP`, which computes an address relative to the global pointer, as detailed in the relocation table legend[[reloc-table-legend]].
 
-The `R_RISCV_GPREL_ADD` relocation is used only for relaxation purposes and is not essential for the ePIC ABI. For examples of possible relaxations see for instance the https://github.com/riscv-non-isa/riscv-elf-psabi-doc/pull/254[large code model].
+The `R_RISCV_GPREL_ADD` relocation is used only for <<relaxations,relaxation purposes>> and is not essential for the ePIC ABI.
 
 ==== `R_RISCV_EPIC_HI20` [[rels-epic-hi]]
 
@@ -198,6 +201,58 @@ The `R_RISCV_EPIC_LO12_I` and `R_RISCV_EPIC_LO12_S` relocations apply to instruc
 ** Adds a `R_RISCV_PCREL_LO12_I` or `R_RISCV_PCREL_LO12_S` relocation, as appropriate, with the same symbol and addend, at the same offset.
 * If the symbol resides in the data segment:
 ** Adds a `R_RISCV_GPREL_LO12_I` or `R_RISCV_GPREL_LO12_S` relocation, as appropriate, with the same addend, at the same offset. The symbol of the new relocation is the symbol of the corresponding `R_RISCV_EPIC_HI20` relocation.
+
+=== Linker relaxations [[relaxations]]
+
+This ABI defines additional linker relaxations, used at link time to optimize instruction sequences that address the data segment. The instruction sequences that address the code segment can be optimized with the preexisting relaxations defined in the https://github.com/riscv-non-isa/riscv-elf-psabi-doc/blob/master/riscv-elf.adoc[base RISC-V ELF specification].
+
+The following instruction sequence, used to address a symbol in the data segment
+
+----
+        lui  rd, %gprel_hi(symbol)
+        add  rd, gp, rd, %gprel_add(symbol)
+        addi rd, rd, %gprel_lo(symbol)
+----
+
+can be optimized into
+
+----
+        addi rd, gp, %gprel_lo(symbol)
+----
+
+when symbol is within the 12-bit immediate range of the global pointer. To allow this relaxation to occur, each instruction in the sequence must have a `R_RISCV_RELAX` relocation, in addition to the `R_RISCV_GPREL_HI20`, `R_RISCV_GPREL_LO12_I`, `R_RISCV_GPREL_LO12_S` or `R_RISCV_GPREL_ADD` relocations.
+
+Note that this is a different relaxation than what was proposed in the https://github.com/ebahapo/riscv-elf-psabi-doc/blob/compact/riscv-compact.md[compact] and https://github.com/ebahapo/riscv-elf-psabi-doc/blob/large/riscv-large.md[large] code models, as it adds the offset to the `gp` register.
+
+Likewise, load and store instruction sequences can be optimized. For instance, a typical load instruction sequence such as
+
+----
+        lui  rd, %gprel_hi(symbol)
+        add  rd, gp, rd, %gprel_add(symbol)
+        lw   rd, rd, %gprel_lo(symbol)
+----
+
+can be optimized into
+
+----
+        lw   rd, %gprel_lo(symbol)(gp)
+----
+
+A typical store instruction sequence such as
+
+----
+        lui  rd, %gprel_hi(symbol)
+        add  rd, gp, rd, %gprel_add(symbol)
+        sw   t0, rd, %gprel_lo(symbol)
+----
+
+can be optimized into
+
+----
+        sw   t0, %gprel_lo(symbol)(gp)
+----
+
+The same requirements apply in terms of being within the range of the 12-bit offset and needing `R_RISCV_RELAX` relocations for all instructions.
 
 === Toolchain considerations [[toolchain-concerns]]
 
