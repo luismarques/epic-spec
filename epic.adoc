@@ -32,7 +32,7 @@ The RISC-V embedded PIC (ePIC) ABI defines an ABI and a relocation model for pos
 
 This document specifies an ePIC ABI for the RISC-V ISA but its overall design is easily generalizable to other architectures. The ABI is compatible with both the RV32 and RV64 ISAs.
 
-Dynamically linked libraries are currently not supported. It may be possible to extend the ABI to add such support.
+Dynamically linked libraries are currently not supported. It may be possible to extend the ABI to add such support, for instance by using the same overal approach employed by https://www.youtube.com/watch?v=GydyykyNjxs[FDPIC].
 
 Loading position-independent executables that follow the ePIC ABI requires a loader that applies simple relocations to offsets in the data segment.
 
