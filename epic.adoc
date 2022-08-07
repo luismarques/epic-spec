@@ -141,7 +141,7 @@ The assembler relocation functions `%epic_hi`, `%epic_base_add` and `%epic_lo` e
 
 === Relocations
 
-The relocation table below lists the relocations used by the ePIC ABI.
+The relocation table below lists the additional relocations used by the ePIC ABI.
 
 [[reloc-table]]
 [cols="1,1,1,1"]
