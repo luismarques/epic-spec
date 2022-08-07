@@ -196,12 +196,12 @@ The `R_RISCV_EPIC_BASE_ADD` relocation must apply to an uncompressed `add` instr
 
 ==== `R_RISCV_EPIC_LO12_*` [[rels-epic-lo]]
 
-The `R_RISCV_EPIC_LO12_I` and `R_RISCV_EPIC_LO12_S` relocations apply to instructions encoded using the `I` and `S` instruction formats, respectively. Their behavior depend on the residence of the referenced symbols.
+The `R_RISCV_EPIC_LO12_I` and `R_RISCV_EPIC_LO12_S` relocations apply to instructions encoded using the `I` and `S` instruction formats, respectively. For both of them, the symbol points to an instruction with a `R_RISCV_EPIC_HI20` relocation. Their behavior depends on the residence of the symbol referenced by the respective `R_RISCV_EPIC_HI20` relocation.
 
 * If the symbol resides in the code segment:
 ** Adds a `R_RISCV_PCREL_LO12_I` or `R_RISCV_PCREL_LO12_S` relocation, as appropriate, with the same symbol and addend, at the same offset.
 * If the symbol resides in the data segment:
-** Adds a `R_RISCV_GPREL_LO12_I` or `R_RISCV_GPREL_LO12_S` relocation, as appropriate, with the same addend, at the same offset. The symbol of the new relocation is the symbol of the corresponding `R_RISCV_EPIC_HI20` relocation.
+** Adds a `R_RISCV_GPREL_LO12_I` or `R_RISCV_GPREL_LO12_S` relocation, as appropriate, at the same offset. The symbol and addend of the new relocation are those of the corresponding `R_RISCV_EPIC_HI20` relocation.
 
 === Linker relaxations [[relaxations]]
 
