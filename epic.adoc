@@ -137,7 +137,7 @@ If you do not know in which segment a symbol will reside, the canonical instruct
         ret
 ----
 
-The assembler relocation functions `%epic_hi`, `%epic_base_add` and `%epic_lo` emit relocations that effectively transform this sequence into one of the preceding ones, depending on where the symbol resides.
+The assembler relocation functions `%epic_hi`, `%epic_base_add` and `%epic_lo` emit relocations that effectively <<rels-epic-hi,transform this sequence>> into one of the preceding ones, depending on where the symbol resides.
 
 === Relocations
 
