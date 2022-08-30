@@ -257,11 +257,13 @@ The same requirements apply in terms of being within the range of the 12-bit off
 
 === Toolchain considerations [[toolchain-concerns]]
 
-The conventional compiler option to enable ePIC is `-fepic`. To enable ePIC during link-time code generation use the linker option `--lto-epic`.
+The conventional toolchain option to enable ePIC is `-fepic`.
 
-The compiler should not accept an `-mcmodel` option when ePIC is enabled.
+Using the `-fepic` option with the compiler or the linker enables the use of the ePIC ABI during code generation. For the linker, this becomes relevant when doing link-time optimization. An `-mcmodel` option (or equivalent) should be rejected when ePIC is enabled.
 
-If the `__global_pointer$` symbol is not defined the linker should assume that it points 0x800 bytes past the start of the data segment.
+Using the `-fepic` option with the linker ensures that the generated segments in the output file (e.g. ELF program segments) can be mapped to the ePIC code and data segments, if not overridden by a linker script. It also prevents the linker from performing relaxations that are invalid in the context of ePIC, namely relaxing PC-relative addressing to GP-relative addressing.
+
+If the `__global_pointer$` symbol is not defined the linker should assume that it points 0x800 bytes past the start of the ePIC data segment.
 
 === Loading and relocation [[loading]]
 
