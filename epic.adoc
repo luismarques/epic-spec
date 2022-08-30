@@ -32,11 +32,11 @@ The RISC-V embedded PIC (ePIC) ABI defines an ABI and a relocation model for pos
 
 This document specifies an ePIC ABI for the RISC-V ISA but its overall design is easily generalizable to other architectures. The ABI is compatible with both the RV32 and RV64 ISAs.
 
-Dynamically linked libraries are currently not supported. It may be possible to extend the ABI to add such support, for instance by using the same overal approach employed by https://www.youtube.com/watch?v=GydyykyNjxs[FDPIC].
+Dynamically linked libraries are currently not supported. It may be possible to extend the ABI to add such support, for instance by using the same overall approach employed by https://www.youtube.com/watch?v=GydyykyNjxs[FDPIC].
 
 Loading position-independent executables that follow the ePIC ABI requires a loader that applies simple relocations to offsets in the data segment.
 
-This ABI defines relocations that are used by the static linker to rewrite instruction sequences. That unconventional mechanism avoids the use of higher overhead alternatives such as the global offset table (GOT) used by position-independent executables following the System-V ABI.
+This ABI defines relocations that are used by the static linker to rewrite instruction sequences. That unconventional mechanism avoids the use of higher overhead alternatives such as the global offset table (GOT) used by position-independent executables following the System V ABI.
 
 == Overview [[overview]]
 
@@ -44,7 +44,7 @@ The ePIC ABI considers that there are two memory segments, the code and the data
 
 Because the segments can move with respect to each other after the executable has been linked, it is not possible to use the RISC-V ISA's PC-relative addressing to directly access objects residing in the data segment. That would require applying relocations to the code at dynamic link time but the code may reside in read-only memory.
 
-Still, we want to avoid the use of indirection mechanism that introduce code size and runtime performance overheads. As such, the ePIC ABI uses different addressing schemes for the code and the data segments. The code segment is addressed in a PC-relative way, while the data segment is addressed relative to the global pointer (i.e. GP-relative).
+Still, we want to avoid the use of indirection mechanisms that introduce code size and runtime performance overheads. As such, the ePIC ABI uses different addressing schemes for the code and the data segments. The code segment is addressed in a PC-relative way, while the data segment is addressed relative to the global pointer (i.e. GP-relative).
 
 Unfortunately, in general we cannot predict at compilation time the segment in which objects will reside (with typical toolchains). For example, consider the following C++ code:
 
@@ -81,7 +81,7 @@ S::S() {
 }
 ----
 
-Clang will emit `s` in a writable section. In the case of the ePIC ABI, those sections would typically map to different segments. Since the ePIC segments are accessed using different instruction sequences, we need a mechanism to address objects whose residence is unknown at compilation time. In the System-V ABI this is solved through the use of a global offset table (GOT). To avoid the overheads introduced by the GOT, the ePIC ABI instead defines a link-time instruction rewrite mechanism, based on relocations.
+Clang will emit `s` in a writable section. In the case of the ePIC ABI, those sections would typically map to different segments. Since the ePIC segments are accessed using different instruction sequences, we need a mechanism to address objects whose residence is unknown at compilation time. In the System V ABI this is solved through the use of a global offset table (GOT). To avoid the overheads introduced by the GOT, the ePIC ABI instead defines a link-time instruction rewrite mechanism, based on relocations.
 
 == Specification [[specification]]
 
@@ -97,7 +97,7 @@ Like when using the https://github.com/riscv-non-isa/riscv-elf-psabi-doc/blob/ma
 
 A register is reserved to store the value of the global pointer. Without loss of generality, this document assumes that the `gp` register (`x3`) is used for that purpose.
 
-ELF binaries can have more than two ELF segments but they cannot all be relocated independently. Each ELF segment conceptually belongs to either the ePIC code segment or the ePIC data segment. Thus, two ELF segments that belong to the same ePIC segment must be relocated using the same relocation offset. The mapping of ELF segments to ePIC segments is implementation-specific and out of scope of this specification.
+ELF binaries can have more than two ELF segments but they cannot all be relocated independently. Each ELF segment conceptually belongs to either the ePIC code segment or the ePIC data segment. Thus, two ELF segments that belong to the same ePIC segment must be relocated using the same relocation offset. The mapping of ELF segments to ePIC segments is implementation-specific and out of the scope of this specification.
 
 === Address generation [[addr-gen]]
 
@@ -221,7 +221,7 @@ can be optimized into
         addi rd, gp, %gprel_lo(symbol)
 ----
 
-when symbol is within the 12-bit immediate range of the global pointer. To allow this relaxation to occur, each instruction in the sequence must have a `R_RISCV_RELAX` relocation, in addition to the `R_RISCV_GPREL_HI20`, `R_RISCV_GPREL_LO12_I`, `R_RISCV_GPREL_LO12_S` or `R_RISCV_GPREL_ADD` relocations.
+when the symbol is within the 12-bit immediate range of the global pointer. To allow this relaxation to occur, each instruction in the sequence must have a `R_RISCV_RELAX` relocation, in addition to the `R_RISCV_GPREL_HI20`, `R_RISCV_GPREL_LO12_I`, `R_RISCV_GPREL_LO12_S` or `R_RISCV_GPREL_ADD` relocations.
 
 Note that this is a different relaxation than what was proposed in the https://github.com/ebahapo/riscv-elf-psabi-doc/blob/compact/riscv-compact.md[compact] and https://github.com/ebahapo/riscv-elf-psabi-doc/blob/large/riscv-large.md[large] code models, as it adds the offset to the `gp` register.
 
@@ -273,7 +273,7 @@ To load and relocate an executable that follows the ePIC ABI the loader must:
 2. Apply the `R_RISCV_32` (for RV32) or `R_RISCV_64` (for RV64) relocations that apply to the data segment.
 3. Set the `gp` register to the value of the relocated global pointer. For instance, if `__global_pointer$` points to the base of the data segment then it sets `gp` to the data segment's loading address.
 
-After that, the loading process is considered complete (for the purposes of the ePIC ABI) and control can be transfered to the executable.
+After that, the loading process is considered complete (for the purposes of the ePIC ABI) and control can be transferred to the executable.
 
 == Examples
 
@@ -516,7 +516,7 @@ const int *const p4 = &y;
 
 We have two integer variables, `x` and `y`, and four pointer variables, `p1`, `p2`, `p3`, and `p4`.
 
-The following table illustrates typical results from building executables with that source code, both as position-independent executables (PIE) and regular executables (non-PIE). For these results it does not matter whether the PIE follows the System-V PIC ABI or the ePIC ABI.
+The following table illustrates typical results from building executables with that source code, both as position-independent executables (PIE) and regular executables (non-PIE). For these results it does not matter whether the PIE follows the System V PIC ABI or the ePIC ABI.
 
 [cols="1,1,1,1,1"]
 |===
@@ -533,7 +533,7 @@ The following table illustrates typical results from building executables with t
 
 `p1` and `p2` are mutable pointers so they are also emitted in the `.sdata` section. It does not matter whether the variables that they point to are `const` or not.
 
-`p3` is a `const` pointer to mutable data while `p4` is a `const` pointer to `const` data. Because they are `const` pointers, per the C specification they can be put in read-only storage. Again, it does not matter whether the variables that they point to are `const` or not. When building non-PIE binaries the location of `x` and `y` will be assigned at static link time. Thus, the `R_RISCV_32` relocation can be applied at static link time, and `p3` and `p4` can be emitted in a read-only section. In a PIE binary the relocation can only be resolved during the dynamic linking process, so `p3` and `p4` must be emitted in a writable section -- in this case `.data.rel.ro` -- so that the relocation can be be applied by the dynamic linker. The `.rel.ro` suffix indicates the use of "Relocation Read-Only" (RELRO), not a read-only section. When using RELRO the dynamic linker is allowed to mark the section as read-only after applying the relocations.
+`p3` is a `const` pointer to mutable data while `p4` is a `const` pointer to `const` data. Because they are `const` pointers, per the C specification they can be put in read-only storage. Again, it does not matter whether the variables that they point to are `const` or not. When building non-PIE binaries the location of `x` and `y` will be assigned at static link time. Thus, the `R_RISCV_32` relocation can be applied at static link time, and `p3` and `p4` can be emitted in a read-only section. In a PIE binary the relocation can only be resolved during the dynamic linking process, so `p3` and `p4` must be emitted in a writable section -- in this case `.data.rel.ro` -- so that the relocation can be applied by the dynamic linker. The `.rel.ro` suffix indicates the use of "Relocation Read-Only" (RELRO), not a read-only section. When using RELRO the dynamic linker is allowed to mark the section as read-only after applying the relocations.
 
 == External links [[external-links]]
 
